@@ -5,7 +5,8 @@ package transducers
 import (
 	"reflect"
 
-	"github.com/rushsteve1/fp/iter"
+	"iter"
+
 	"github.com/rushsteve1/fp/magic"
 	"github.com/rushsteve1/fp/reducers"
 )
@@ -15,9 +16,6 @@ import (
 
 // Transform takes a value and returns a new value.
 type Transform[T, U any] func(T) U
-
-// Visit just looks at the value of an element without modifying it
-type Visitor[T any] Transform[T, T]
 
 // Transducer is a generalized mapping of a computation between two iter.Sequences.
 // The easiest way to create a transducer is using [magic.Curry2] on a [Transform]
@@ -33,8 +31,8 @@ func Pass[T any](seq iter.Seq[T]) iter.Seq[T] {
 
 // Map is the simplest but shows how it all actually works the same as a transducer
 func Map[T, U any](seq iter.Seq[T], f func(T) U) iter.Seq[U] {
-	return iter.SeqFunc[U](func(yield func(U) bool) {
-		seq.Seq(func(t T) bool {
+	return iter.Seq[U](func(yield func(U) bool) {
+		seq(func(t T) bool {
 			return yield(f(t))
 		})
 	})
@@ -42,8 +40,8 @@ func Map[T, U any](seq iter.Seq[T], f func(T) U) iter.Seq[U] {
 
 // Filter has the added constraint [comparable]
 func Filter[T comparable](seq iter.Seq[T], f func(T) bool) iter.Seq[T] {
-	return iter.SeqFunc[T](func(yield func(T) bool) {
-		seq.Seq(func(t T) bool {
+	return iter.Seq[T](func(yield func(T) bool) {
+		seq(func(t T) bool {
 			return magic.Ternary(f(t), yield(t), true)
 		})
 	})
@@ -59,9 +57,9 @@ func Visit[T any](seq iter.Seq[T], f func(T)) iter.Seq[T] {
 
 // Take returns a new iterator that stops after count elements
 func Take[T any](seq iter.Seq[T], count int) iter.Seq[T] {
-	return iter.SeqFunc[T](func(yield func(T) bool) {
+	return iter.Seq[T](func(yield func(T) bool) {
 		i := 0
-		seq.Seq(func(t T) bool {
+		seq(func(t T) bool {
 			if i >= count {
 				return false
 			}
@@ -72,8 +70,8 @@ func Take[T any](seq iter.Seq[T], count int) iter.Seq[T] {
 
 // Drop removes the first count elements from the sequence
 func Drop[T any](seq iter.Seq[T], count int) iter.Seq[T] {
-	return iter.SeqFunc[T](func(yield func(T) bool) {
-		seq.Seq(func(t T) bool {
+	return iter.Seq[T](func(yield func(T) bool) {
+		seq(func(t T) bool {
 			for range count {
 				if !yield(t) {
 					return false
@@ -86,8 +84,8 @@ func Drop[T any](seq iter.Seq[T], count int) iter.Seq[T] {
 
 // Fuse stops the sequence at the first nil value
 func Fuse[T comparable](seq iter.Seq[T], count int) iter.Seq[T] {
-	return iter.SeqFunc[T](func(yield func(T) bool) {
-		seq.Seq(func(t T) bool {
+	return iter.Seq[T](func(yield func(T) bool) {
+		seq(func(t T) bool {
 			// Generics fail us hereabouts
 			if reflect.ValueOf(t).IsNil() {
 				return false

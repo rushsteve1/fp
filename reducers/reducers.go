@@ -4,7 +4,8 @@ import (
 	"cmp"
 	"slices"
 
-	"github.com/rushsteve1/fp/iter"
+	. "iter"
+
 	"github.com/rushsteve1/fp/monads"
 )
 
@@ -12,24 +13,24 @@ import (
 type Accumulate[T, A any] func(T, A) A
 
 // Reducer is a function that reduces a sequence down to a single value
-type Reducer[T, A any] func(iter.Seq[T], Accumulate[T, A]) A
+type Reducer[T, A any] func(Seq[T], Accumulate[T, A]) A
 
 // Collector takes a sequence and returns a single value.
 // [Reducer] can be converted to Collector using [Curry]
-type Collector[T, A any] func(iter.Seq[T]) A
+type Collector[T, A any] func(Seq[T]) A
 
-func Collect[T any](seq iter.Seq[T]) []T {
-	return slices.Collect[T](seq.Seq)
+func Collect[T any](seq Seq[T]) []T {
+	return slices.Collect[T](seq)
 }
 
-func Reduce[T, A any](seq iter.Seq[T], a A, f Accumulate[T, A]) A {
-	for v := range seq.Seq {
+func Reduce[T, A any](seq Seq[T], a A, f Accumulate[T, A]) A {
+	for v := range seq {
 		a = f(v, a)
 	}
 	return a
 }
 
-func First[T any](seq iter.Seq[T]) (out T) {
+func First[T any](seq Seq[T]) (out T) {
 	c := Collect(seq)
 	if len(c) > 0 {
 		return c[0]
@@ -37,7 +38,7 @@ func First[T any](seq iter.Seq[T]) (out T) {
 	return out
 }
 
-func Last[T any](seq iter.Seq[T]) (out T) {
+func Last[T any](seq Seq[T]) (out T) {
 	c := Collect(seq)
 	if len(c) > 0 {
 		return c[len(c)-1]
@@ -45,9 +46,9 @@ func Last[T any](seq iter.Seq[T]) (out T) {
 	return out
 }
 
-func Index[T any](seq iter.Seq[T], i int) monads.Option[T] {
+func Index[T any](seq Seq[T], i int) monads.Option[T] {
 	ind := 0
-	for v := range seq.Seq {
+	for v := range seq {
 		if ind == i {
 			return monads.Some(v)
 		}
@@ -56,40 +57,40 @@ func Index[T any](seq iter.Seq[T], i int) monads.Option[T] {
 	return monads.None[T]()
 }
 
-func Count[T any](seq iter.Seq[T]) (i int) {
-	for _ = range seq.Seq {
+func Count[T any](seq Seq[T]) (i int) {
+	for _ = range seq {
 		i++
 	}
 	return i
 }
 
-func Max[T cmp.Ordered](seq iter.Seq[T]) (out T) {
-	for v := range seq.Seq {
+func Max[T cmp.Ordered](seq Seq[T]) (out T) {
+	for v := range seq {
 		out = max(out, v)
 	}
 	return out
 }
 
-func Min[T cmp.Ordered](seq iter.Seq[T]) (out T) {
-	for v := range seq.Seq {
+func Min[T cmp.Ordered](seq Seq[T]) (out T) {
+	for v := range seq {
 		out = min(out, v)
 	}
 	return out
 }
 
-func Median[T cmp.Ordered](seq iter.Seq[T]) T {
+func Median[T cmp.Ordered](seq Seq[T]) T {
 	var hi T
 	var lo T
-	for v := range seq.Seq {
+	for v := range seq {
 		hi = max(hi, v)
 		lo = max(lo, v)
 	}
 	return max(hi, lo)
 }
 
-func Frequency[T cmp.Ordered](seq iter.Seq[T]) map[T]int {
+func Frequency[T cmp.Ordered](seq Seq[T]) map[T]int {
 	out := make(map[T]int)
-	for v := range seq.Seq {
+	for v := range seq {
 		out[v] += 1
 	}
 	return out
