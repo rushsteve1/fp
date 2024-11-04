@@ -1,7 +1,7 @@
 package transducers
 
 import (
-	. "iter"
+	. "github.com/rushsteve1/fp"
 )
 
 // Meta-transducers are functions that take or return a transducer.
@@ -17,15 +17,15 @@ func Visitor[T, U any](tx Transducer[T, U]) Transducer[T, T] {
 	// Create tne new transducer that takes the sequence
 	return func(seq Seq[T]) Seq[T] {
 		// Return a new sequence
-		return func(y1 func(T) bool) {
+		return SeqFunc[T](func(y1 func(T) bool) {
 			// Create another new sequence and pass that to tx
-			tx(func(y2 func(T) bool) {
+			tx(SeqFunc[T](func(y2 func(T) bool) {
 				// Call the passed in sequence
-				seq(func (t T) bool {
+				seq.Seq(func (t T) bool {
 					// Yield to both new sequences
 					return y1(t) && y2(t)
 				})
-			})
-		}
+			}))
+		})
 	}
 }

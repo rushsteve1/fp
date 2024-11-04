@@ -9,7 +9,7 @@ import (
 
 func TestTicker(t *testing.T) {
 	i := 0
-	for _ = range Ticker(time.Millisecond * 100) {
+	for _ = range Ticker(time.Millisecond * 100).Seq {
 		if i > 5 {
 			break
 		}
@@ -29,7 +29,7 @@ func TestChan(t *testing.T) {
 	}()
 
 	i := 0
-	for v := range s {
+	for v := range s.Seq {
 		t.Log(v)
 		i++
 	}

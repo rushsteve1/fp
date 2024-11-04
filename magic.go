@@ -15,19 +15,20 @@ package fp
 
 import (
 	"cmp"
+	"runtime"
+	"slices"
+	"testing"
 )
 
-var GlobalErrorHandler = func(err error) {
+var GlobalErrorHandler = func(err error) bool {
 	panic(err)
-}
-
-func Identity[T any](t T) T {
-	return t
 }
 
 func Check(err error) {
 	if err != nil {
-		GlobalErrorHandler(err)
+		if !GlobalErrorHandler(err) {
+			runtime.Goexit()
+		}
 	}
 }
 
@@ -35,20 +36,6 @@ func Check(err error) {
 func Must[T any](t T, err error) T {
 	Check(err)
 	return t
-}
-
-// Errorless takes a function that can error and returns a new function that
-// wraps the provided one in [fp.Must]
-func Errorless[T, U any](f func(T) (U, error)) func(T) U {
-	return func(t T) U {
-		return Must(f(t))
-	}
-}
-
-func Discard[T, U any](f func(T) U) func(T) {
-	return func(t T) {
-		_ = f(t)
-	}
 }
 
 func Clamp[T cmp.Ordered](x T, lo T, hi T) T {
@@ -72,4 +59,22 @@ func Ternary[T any](cond bool, a T, b T) T {
 		return a
 	}
 	return b
+}
+
+func Assert(t *testing.T, cond bool) {
+	if !cond {
+		t.Error("Assertion failure")
+	}
+}
+
+func AssertEq[T comparable](t *testing.T, a, b T) {
+	if a != b {
+		t.Errorf("Assertion failure: %+v != %+v", a, b)
+	}
+}
+
+func AssertSliceEq[S ~[]E, E comparable](t *testing.T, a, b S) {
+	if !slices.Equal(a, b) {
+		t.Errorf("Assertion failure: %+v != %+v", a, b)
+	}
 }

@@ -8,11 +8,10 @@ import (
 	"testing"
 	"time"
 
-	. "iter"
-
+	. "github.com/rushsteve1/fp"
 	. "github.com/rushsteve1/fp/generators"
 	. "github.com/rushsteve1/fp/reducers"
-	. "github.com/rushsteve1/fp/threading"
+	. "github.com/rushsteve1/fp/fun"
 	. "github.com/rushsteve1/fp/transducers"
 )
 
@@ -26,9 +25,7 @@ func TestTransduce(t *testing.T) {
 		Max,
 		Integers(),
 	)
-	if s != "5" {
-		t.Errorf("%s != \"6\"", s)
-	}
+	AssertEq(t, s, "5")
 }
 
 func BenchmarkTransduce(b *testing.B) {
@@ -52,14 +49,14 @@ func TestTransducerSeconds(t *testing.T) {
 }
 
 func TestMap(t *testing.T) {
-	seq := Seq[int](slices.Values([]int{1, 2, 3}))
+	seq := SeqFunc[int](slices.Values([]int{1, 2, 3}))
 	tx1 := Map(seq, func(x int) int {
 		return x * 2
 	})
 	tx2 := Map(tx1, func(x int) string {
 		return strconv.Itoa(x)
 	})
-	sl := slices.Collect(tx2)
+	sl := Collect(tx2)
 
 	if !slices.Equal(sl, []string{"2", "4", "6"}) {
 		t.Fail()
@@ -67,7 +64,7 @@ func TestMap(t *testing.T) {
 }
 
 func TestTake(t *testing.T) {
-	seq := slices.Values([]int{1, 2, 3, 4, 5})
+	seq := SeqFunc[int](slices.Values([]int{1, 2, 3, 4, 5}))
 	ar := Collect(Take(seq, 3))
 	if !slices.Equal(ar, []int{1, 2, 3}) {
 		t.Errorf("%v is not right", ar)
