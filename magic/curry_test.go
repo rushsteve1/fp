@@ -7,8 +7,8 @@ func TestCurry(t *testing.T) {
 		return a + b + c
 	}
 	f := Curry[int, int](foo, 1, 2)
-	v := f(2)
-	if v != (1 + 2 + 3) {
-		t.Fail()
+	v := f(3)
+	if v != 6 {
+		t.Errorf("%v != 6", v)
 	}
 }

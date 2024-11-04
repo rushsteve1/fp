@@ -9,13 +9,24 @@ import (
 )
 
 // Accumulate is a function that applies a value to an accumulator, returning the new accumulator
-type Accumulate[T, A any] = func(element T, accumulator A) (new_acc A)
+type Accumulate[T, A any] func(T, A) A
 
-// Accumulator is a function that reduces a sequence down to a single value
-type Reducer[T, A any] func(seq iter.Seq[T], f func(element T, accumulator A) (new_acc A)) (result A)
+// Reducer is a function that reduces a sequence down to a single value
+type Reducer[T, A any] func(iter.Seq[T], Accumulate[T, A]) A
+
+// Collector takes a sequence and returns a single value.
+// [Reducer] can be converted to Collector using [Curry]
+type Collector[T, A any] func(iter.Seq[T]) A
 
 func Collect[T any](seq iter.Seq[T]) []T {
 	return slices.Collect[T](seq.Seq)
+}
+
+func Reduce[T, A any](seq iter.Seq[T], a A, f Accumulate[T, A]) A {
+	for v := range seq.Seq {
+		a = f(v, a)
+	}
+	return a
 }
 
 func First[T any](seq iter.Seq[T]) (out T) {

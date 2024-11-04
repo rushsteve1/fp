@@ -5,10 +5,7 @@ import (
 	"reflect"
 )
 
-type OneArg[A, Out any] = func(A) Out
-type TwoArg[A1, A2, Out any] = func(A1, A2) Out
-
-func Curry[In, Out any](f any, args ...any) OneArg[In, Out] {
+func Curry[In, Out any](f any, args ...any) func(In) Out {
 	vf := reflect.ValueOf(f)
 	tf := vf.Type()
 	if tf.Kind() != reflect.Func {
@@ -17,8 +14,8 @@ func Curry[In, Out any](f any, args ...any) OneArg[In, Out] {
 	if tf.NumOut() > 1 {
 		panic("Curry function must return at most 1 value")
 	}
-	if tf.NumIn() > len(args) {
-		panic(fmt.Sprintf("Curry too many arguments for function expected %d got %d", tf.NumIn(), len(args)))
+	if (tf.NumIn()-1) > len(args) {
+		panic(fmt.Sprintf("Curry too many arguments for function expected %d got %d", tf.NumIn()-1, len(args)))
 	}
 
 	fargs := make([]reflect.Value, 0, len(args))
@@ -26,27 +23,29 @@ func Curry[In, Out any](f any, args ...any) OneArg[In, Out] {
 		fargs = append(fargs, reflect.ValueOf(a))
 	}
 
-	tout := reflect.TypeFor[OneArg[In, Out]]()
+	tout := reflect.TypeFor[func(In) Out]()
 
 	vout := reflect.MakeFunc(tout, func(outargs []reflect.Value) (results []reflect.Value) {
-		arg := outargs[0]
-		return vf.Call([]reflect.Value{arg})
+		args := make([]reflect.Value, 0, len(fargs) + 1)
+		args = append(args, outargs[0])
+		args = append(args, fargs...)
+		return vf.Call(args)
 	})
 
-	cast, ok := vout.Interface().(OneArg[In, Out])
+	cast, ok := vout.Interface().(func(In) Out)
 	if !ok {
 		panic("Curry could not cast to OneArg")
 	}
 	return cast
 }
 
-func Curry2[A, B, Out any](f TwoArg[A, B, Out], b B) OneArg[A, Out] {
+func Curry2[A, B, Out any](f func(A, B) Out, b B) func(A) Out {
 	return func(a A) Out {
 		return f(a, b)
 	}
 }
 
-func Curry3[A, B, C, Out any](f func(A, B, C) Out, c C) TwoArg[A, B, Out] {
+func Curry3[A, B, C, Out any](f func(A, B, C) Out, c C) func(A, B) Out {
 	return func(a A, b B) Out {
 		return f(a, b, c)
 	}

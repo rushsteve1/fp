@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func Chain[In, Out any](fs ...any) OneArg[In, Out] {
+func Chain[In, Out any](fs ...any) func(In) Out {
 	vfs := make([]reflect.Value, 0, len(fs))
 	for i, f := range fs {
 		vf := reflect.ValueOf(f)
@@ -16,6 +16,7 @@ func Chain[In, Out any](fs ...any) OneArg[In, Out] {
 		if tf.NumOut() != 1 {
 			panic(fmt.Sprintf("Chain functions must return exactly 1 value, arg %d is %s", i, tf.String()))
 		}
+		vfs = append(vfs, vf)
 	}
 
 	vfirst := vfs[0]
@@ -35,7 +36,7 @@ func Chain[In, Out any](fs ...any) OneArg[In, Out] {
 		return func(In) Out { return o }
 	}
 
-	tout := reflect.TypeFor[OneArg[In, Out]]()
+	tout := reflect.TypeFor[func(In) Out]()
 
 	vout := reflect.MakeFunc(tout, func(args []reflect.Value) (results []reflect.Value) {
 		arg := args[0]
@@ -45,7 +46,7 @@ func Chain[In, Out any](fs ...any) OneArg[In, Out] {
 		return []reflect.Value{arg}
 	})
 
-	cast, ok := vout.Interface().(OneArg[In, Out])
+	cast, ok := vout.Interface().(func(In) Out)
 	if !ok {
 		panic("Chain function could not cast to OneArg")
 	}
@@ -56,14 +57,20 @@ func Thread[T, U any](start T, fs ...any) U {
 	return Chain[T, U](fs...)(start)
 }
 
-func Chain2[A, B, Out any](a OneArg[A, B], b OneArg[B, Out]) OneArg[A, Out] {
+func Chain2[A, B, Out any](a func(A) B, b func(B) Out) func(A) Out {
 	return func(x A) Out {
 		return b(a(x))
 	}
 }
 
-func Chain3[A, B, C, Out any](a OneArg[A, B], b OneArg[B, C], c OneArg[C, Out]) OneArg[A, Out] {
+func Chain3[A, B, C, Out any](a func(A) B, b func(B) C, c func(C) Out) func(A) Out {
 	return func(x A) Out {
 		return c(b(a(x)))
+	}
+}
+
+func Chain4[A, B, C, D, Out any](a func(A) B, b func(B) C, c func(C) D, d func(D) Out) func(A) Out {
+	return func(x A) Out {
+		return d(c(b(a(x))))
 	}
 }
