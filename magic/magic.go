@@ -17,10 +17,6 @@ import (
 	"cmp"
 )
 
-type Nilable interface {
-	~*any | ~[]any | ~map[any]any
-}
-
 var GlobalErrorHandler = func(err error) {
 	panic(err)
 }

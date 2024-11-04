@@ -1,4 +1,4 @@
-package magic
+package threading
 
 import (
 	"fmt"
@@ -51,10 +51,6 @@ func Chain[In, Out any](fs ...any) func(In) Out {
 		panic("Chain function could not cast to OneArg")
 	}
 	return cast
-}
-
-func Thread[T, U any](start T, fs ...any) U {
-	return Chain[T, U](fs...)(start)
 }
 
 func Chain2[A, B, Out any](a func(A) B, b func(B) Out) func(A) Out {

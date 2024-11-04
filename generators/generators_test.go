@@ -5,11 +5,9 @@ import (
 	"time"
 )
 
-func TestSeconds(t *testing.T) {
-	t.SkipNow()
+func TestTicker(t *testing.T) {
 	i := 0
-	for now := range Seconds {
-		t.Logf("Seconds at %s", now.Format(time.RFC3339))
+	for _ = range Ticker(time.Millisecond * 100) {
 		if i > 5 {
 			break
 		}

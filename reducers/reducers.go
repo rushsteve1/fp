@@ -6,6 +6,7 @@ import (
 
 	. "iter"
 
+	"github.com/rushsteve1/fp/magic"
 	"github.com/rushsteve1/fp/monads"
 )
 
@@ -94,4 +95,32 @@ func Frequency[T cmp.Ordered](seq Seq[T]) map[T]int {
 		out[v] += 1
 	}
 	return out
+}
+
+func Average[T magic.Numeric](seq Seq[T]) T {
+	count := 0
+	var sum T
+	for v := range seq {
+		count++
+		sum += v
+	}
+	return sum / T(count)
+}
+
+func Any[T any](seq Seq[T], f func(T) bool) bool {
+	for v := range seq {
+		if f(v) {
+			return true
+		}
+	}
+	return false
+}
+
+func All[T any](seq Seq[T], f func(T) bool) bool {
+	for v := range seq {
+		if !f(v) {
+			return false
+		}
+	}
+	return true
 }
