@@ -3,6 +3,7 @@ package generators
 import (
 	"io"
 	. "iter"
+	"net"
 	"time"
 
 	"github.com/rushsteve1/fp"
@@ -56,23 +57,41 @@ func Ticker(d time.Duration) Seq[time.Time] {
 }
 
 // Chan returns an iterator that continually yields values from the channel.
-// It is the caller's responsibility to close the channel and prevent deadlocks
+// The channel is closed if the sequence stops.
+// It is the caller's responsibility to close the channel to prevent deadlocks
 func Chan[T any](c chan T) Seq[T] {
 	return func(yield func(T) bool) {
 		for t := range c {
 			if !yield(t) {
+				close(c)
 				return
 			}
 		}
 	}
 }
 
+// Reader reads from the passed [io.Reader] turning into a sequence of byte arrays.
+// See its counterpart [transducers.Writer]
 func Reader(r io.Reader) Seq[[]byte] {
 	return func(yield func([]byte) bool) {
 		var buf []byte
 		fp.Must(r.Read(buf))
 		if !yield(buf) {
 			return
+		}
+	}
+}
+
+// Accept takes a listener and returns a sequence of accepted connections.
+// The listener is closed if the sequence stops.
+func Accept(l net.Listener) Seq[net.Conn] {
+	return func(yield func(net.Conn) bool) {
+		for {
+			c := fp.Must(l.Accept())
+			if !yield(c) {
+				l.Close()
+				return
+			}
 		}
 	}
 }

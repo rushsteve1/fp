@@ -121,12 +121,7 @@ func TestWriter(t *testing.T) {
 			Curry2(Map, func(i int) []byte {
 				return []byte(strconv.Itoa(i))
 			}),
-			Visit(
-				Curry2(
-					Write,
-					io.Writer(&buf),
-				),
-			),
+			Visit(Curry2(Write, io.Writer(&buf))),
 			Curry2(Map, func(b []byte) string {
 				return string(b)
 			}),
@@ -134,11 +129,13 @@ func TestWriter(t *testing.T) {
 		Collect,
 		Integers(),
 	)
-	
+
 	t.Log(buf)
 	t.Log(ar)
-	
+
 	if buf.Len() != len(ar) {
 		t.Fail()
 	}
+	
+	
 }
