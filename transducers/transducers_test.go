@@ -1,6 +1,8 @@
 package transducers_test
 
 import (
+	"bytes"
+	"io"
 	"slices"
 	"strconv"
 	"testing"
@@ -107,6 +109,36 @@ func TestDebounceTransducer(t *testing.T) {
 	)
 	t.Log(avg)
 	if int(avg.Seconds()) != 1 {
+		t.Fail()
+	}
+}
+
+func TestWriter(t *testing.T) {
+	var buf bytes.Buffer
+	ar := Transduce(
+		Chain4(
+			Curry2(Take[int], 5),
+			Curry2(Map, func(i int) []byte {
+				return []byte(strconv.Itoa(i))
+			}),
+			Visit(
+				Curry2(
+					Write,
+					io.Writer(&buf),
+				),
+			),
+			Curry2(Map, func(b []byte) string {
+				return string(b)
+			}),
+		),
+		Collect,
+		Integers(),
+	)
+	
+	t.Log(buf)
+	t.Log(ar)
+	
+	if buf.Len() != len(ar) {
 		t.Fail()
 	}
 }

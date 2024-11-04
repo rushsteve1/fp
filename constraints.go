@@ -1,4 +1,4 @@
-package magic
+package fp
 
 import "golang.org/x/exp/constraints"
 

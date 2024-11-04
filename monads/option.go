@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/rushsteve1/fp/magic"
+	"github.com/rushsteve1/fp"
 )
 
 var ErrUnwrapInvalid = errors.New("Unwrapped invalid Option")
@@ -33,7 +33,7 @@ func None[T any]() Option[T] {
 }
 
 func (o Option[T]) Get() (T, error) {
-	return o.V, magic.Ternary(o.Valid, nil, ErrUnwrapInvalid)
+	return o.V, fp.Ternary(o.Valid, nil, ErrUnwrapInvalid)
 }
 
 func (o Option[T]) Seq(yield func(T) bool) {

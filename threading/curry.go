@@ -2,12 +2,7 @@ package threading
 
 import (
 	"fmt"
-	"iter"
 	"reflect"
-	"slices"
-
-	. "github.com/rushsteve1/fp/reducers"
-	. "github.com/rushsteve1/fp/transducers"
 )
 
 func Curry2[A, B, Out any](f func(A, B) Out, b B) func(A) Out {
@@ -34,11 +29,14 @@ func Curry[In, Out any](f any, args ...any) func(In) Out {
 	if c != len(args) {
 		panic(fmt.Sprintf("Curry incorect args for function expected %d got %d", c, len(args)))
 	}
-	seq := Map(slices.Values(args), reflect.ValueOf)
-	return curry[In, Out](vf, seq)
+	vargs := make([]reflect.Value, 0, len(args))
+	for _, arg := range args {
+		vargs = append(vargs, reflect.ValueOf(arg))
+	}
+	return curry[In, Out](vf, vargs)
 }
 
-func curry[In, Out any](vf reflect.Value, vargs iter.Seq[reflect.Value]) func(In) Out {
+func curry[In, Out any](vf reflect.Value, vargs []reflect.Value) func(In) Out {
 	tf := vf.Type()
 	if tf.Kind() != reflect.Func {
 		panic("Curry first argument must be a function")
@@ -47,19 +45,16 @@ func curry[In, Out any](vf reflect.Value, vargs iter.Seq[reflect.Value]) func(In
 		panic("Curry function must return at most 1 value")
 	}
 
-	i := 0
-	for varg := range vargs {
+	for i, varg := range vargs {
 		targ := varg.Type()
 		tfi := tf.In(i + 1)
 		if tfi != targ {
 			panic(fmt.Sprintf("Curry argument %d is %s expected %s", i, targ, tfi))
 		}
-		i++
 	}
 
 	tout := reflect.TypeFor[func(In) Out]()
 	vout := reflect.MakeFunc(tout, func(vs []reflect.Value) []reflect.Value {
-		vargs := Collect(vargs)
 		args := make([]reflect.Value, 0, len(vargs)+1)
 		args = append(args, vs[0])
 		args = append(args, vargs...)

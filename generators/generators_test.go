@@ -1,8 +1,10 @@
-package generators
+package generators_test
 
 import (
 	"testing"
 	"time"
+	
+	. "github.com/rushsteve1/fp/generators"
 )
 
 func TestTicker(t *testing.T) {
@@ -12,5 +14,27 @@ func TestTicker(t *testing.T) {
 			break
 		}
 		i++
+	}
+}
+
+func TestChan(t *testing.T) {
+	c := make(chan int)
+	s := Chan(c)
+
+	go func() {
+		for i := range 5 {
+			c <- i
+		}
+		close(c)
+	}()
+
+	i := 0
+	for v := range s {
+		t.Log(v)
+		i++
+	}
+
+	if i != 5 {
+		t.Fail()
 	}
 }

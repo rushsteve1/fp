@@ -11,7 +11,7 @@
 // 3. Variadic parameters allow for optional arguments
 // 4. Type assertions are handy
 
-package magic
+package fp
 
 import (
 	"cmp"
@@ -19,6 +19,10 @@ import (
 
 var GlobalErrorHandler = func(err error) {
 	panic(err)
+}
+
+func Identity[T any](t T) T {
+	return t
 }
 
 func Check(err error) {
@@ -31,6 +35,20 @@ func Check(err error) {
 func Must[T any](t T, err error) T {
 	Check(err)
 	return t
+}
+
+// Errorless takes a function that can error and returns a new function that
+// wraps the provided one in [fp.Must]
+func Errorless[T, U any](f func(T) (U, error)) func(T) U {
+	return func(t T) U {
+		return Must(f(t))
+	}
+}
+
+func Discard[T, U any](f func(T) U) func(T) {
+	return func(t T) {
+		_ = f(t)
+	}
 }
 
 func Clamp[T cmp.Ordered](x T, lo T, hi T) T {

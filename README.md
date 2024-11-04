@@ -1,7 +1,7 @@
 # Go Functional Programming
 
 I was inspired by @fossker's wonderful talk at Doomconf 2022H2 and his
-[Common Lisp Transducers](https://codeberg.org/fosskers/cl-transducers#headline-39)
+[Common Lisp Transducers](https://codeberg.org/fosskers/cl-transducers)
 package and documentation
 
 But this is a different approach that aims to build upon Go's existing standard

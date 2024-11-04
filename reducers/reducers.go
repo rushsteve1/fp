@@ -2,11 +2,10 @@ package reducers
 
 import (
 	"cmp"
+	. "iter"
 	"slices"
 
-	. "iter"
-
-	"github.com/rushsteve1/fp/magic"
+	"github.com/rushsteve1/fp"
 	"github.com/rushsteve1/fp/monads"
 )
 
@@ -20,10 +19,19 @@ type Reducer[T, A any] func(Seq[T], Accumulate[T, A]) A
 // [Reducer] can be converted to Collector using [Curry]
 type Collector[T, A any] func(Seq[T]) A
 
+// Collect wraps [slices.Collect]
 func Collect[T any](seq Seq[T]) []T {
 	return slices.Collect[T](seq)
 }
 
+// Discard consumes a sequnce, discarding the results
+func Discard[T any](seq Seq[T]) {
+	for range seq {
+		// Do nothing!
+	}
+}
+
+// Reduce consumes a sequence returning a final accumulator value
 func Reduce[T, A any](seq Seq[T], a A, f Accumulate[T, A]) A {
 	for v := range seq {
 		a = f(v, a)
@@ -31,6 +39,7 @@ func Reduce[T, A any](seq Seq[T], a A, f Accumulate[T, A]) A {
 	return a
 }
 
+// First returns the first element of a sequence
 func First[T any](seq Seq[T]) (out T) {
 	c := Collect(seq)
 	if len(c) > 0 {
@@ -39,6 +48,7 @@ func First[T any](seq Seq[T]) (out T) {
 	return out
 }
 
+// Last returns the last element of a sequence, which may not exist
 func Last[T any](seq Seq[T]) (out T) {
 	c := Collect(seq)
 	if len(c) > 0 {
@@ -47,6 +57,7 @@ func Last[T any](seq Seq[T]) (out T) {
 	return out
 }
 
+// Index returns the element at the given index, if it exists
 func Index[T any](seq Seq[T], i int) monads.Option[T] {
 	ind := 0
 	for v := range seq {
@@ -58,13 +69,15 @@ func Index[T any](seq Seq[T], i int) monads.Option[T] {
 	return monads.None[T]()
 }
 
-func Count[T any](seq Seq[T]) (i int) {
+// Length returns the number of elements in a sequence
+func Length[T any](seq Seq[T]) (i int) {
 	for _ = range seq {
 		i++
 	}
 	return i
 }
 
+// Max returns the maximum value of a sequence, determined by [max]
 func Max[T cmp.Ordered](seq Seq[T]) (out T) {
 	for v := range seq {
 		out = max(out, v)
@@ -72,6 +85,7 @@ func Max[T cmp.Ordered](seq Seq[T]) (out T) {
 	return out
 }
 
+// Min returns the minimum value of a sequence, determined by [min]
 func Min[T cmp.Ordered](seq Seq[T]) (out T) {
 	for v := range seq {
 		out = min(out, v)
@@ -83,10 +97,10 @@ func Median[T cmp.Ordered](seq Seq[T]) T {
 	var hi T
 	var lo T
 	for v := range seq {
-		hi = max(hi, v)
-		lo = max(lo, v)
+		hi = max(hi, v, lo)
+		lo = max(lo, v, hi)
 	}
-	return max(hi, lo)
+	return lo
 }
 
 func Frequency[T cmp.Ordered](seq Seq[T]) map[T]int {
@@ -97,7 +111,7 @@ func Frequency[T cmp.Ordered](seq Seq[T]) map[T]int {
 	return out
 }
 
-func Average[T magic.Numeric](seq Seq[T]) T {
+func Average[T fp.Numeric](seq Seq[T]) T {
 	count := 0
 	var sum T
 	for v := range seq {

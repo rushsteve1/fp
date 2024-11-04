@@ -53,20 +53,20 @@ func Chain[In, Out any](fs ...any) func(In) Out {
 	return cast
 }
 
-func Chain2[A, B, Out any](a func(A) B, b func(B) Out) func(A) Out {
-	return func(x A) Out {
+func Chain2[In, B, Out any](a func(In) B, b func(B) Out) func(In) Out {
+	return func(x In) Out {
 		return b(a(x))
 	}
 }
 
-func Chain3[A, B, C, Out any](a func(A) B, b func(B) C, c func(C) Out) func(A) Out {
-	return func(x A) Out {
+func Chain3[In, B, C, Out any](a func(In) B, b func(B) C, c func(C) Out) func(In) Out {
+	return func(x In) Out {
 		return c(b(a(x)))
 	}
 }
 
-func Chain4[A, B, C, D, Out any](a func(A) B, b func(B) C, c func(C) D, d func(D) Out) func(A) Out {
-	return func(x A) Out {
+func Chain4[In, B, C, D, Out any](a func(In) B, b func(B) C, c func(C) D, d func(D) Out) func(In) Out {
+	return func(x In) Out {
 		return d(c(b(a(x))))
 	}
 }
