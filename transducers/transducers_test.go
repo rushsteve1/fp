@@ -121,7 +121,7 @@ func TestWriter(t *testing.T) {
 			Curry2(Map, func(i int) []byte {
 				return []byte(strconv.Itoa(i))
 			}),
-			Visit(Curry2(Write, io.Writer(&buf))),
+			Visitor(Curry2(Write, io.Writer(&buf))),
 			Curry2(Map, func(b []byte) string {
 				return string(b)
 			}),
