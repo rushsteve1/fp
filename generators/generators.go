@@ -1,7 +1,9 @@
 package generators
 
 import (
+	"errors"
 	"io"
+	"math/rand/v2"
 	"net"
 	"time"
 
@@ -20,8 +22,7 @@ func Empty[T any]() Seq[T] {
 // yielding the values it returns
 func Generate[T any](f func() T) Seq[T] {
 	return SeqFunc[T](func(yield func(T) bool) {
-		if !yield(f()) {
-			return
+		for yield(f()) {
 		}
 	})
 }
@@ -36,8 +37,7 @@ func Once[T any](v T) Seq[T] {
 // Forever returns an infinite sequence of the provided value
 func Forever[T any](v T) Seq[T] {
 	return SeqFunc[T](func(yield func(T) bool) {
-		if !yield(v) {
-			return
+		for yield(v) {
 		}
 	})
 }
@@ -48,6 +48,18 @@ func Integers() Seq[int] {
 		n := 0
 		for yield(n) {
 			n++
+		}
+	})
+}
+
+// Shuffle returns an infinite sequence of random elements from pick
+func Shuffle[E ~[]T, T any](pick E) Seq[T] {
+	return SeqFunc[T](func(yield func(T) bool) {
+		for {
+			n := rand.Int() % len(pick)
+			if !yield(pick[n]) {
+				return
+			}
 		}
 	})
 }
@@ -82,9 +94,14 @@ func Chan[T any](c chan T) Seq[T] {
 func Reader(r io.Reader) Seq[monads.Result[[]byte]] {
 	return SeqFunc[monads.Result[[]byte]](func(yield func(monads.Result[[]byte]) bool) {
 		var buf []byte
-		_, err := r.Read(buf)
-		if !yield(monads.Wrap(buf, err)) {
-			return
+		for {
+			_, err := r.Read(buf)
+			if errors.Is(err, io.EOF) {
+				return
+			}
+			if !yield(monads.Wrap(buf, err)) {
+				return
+			}
 		}
 	})
 }
