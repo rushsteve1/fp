@@ -1,11 +1,30 @@
 # Go Functional Programming
 
+This library is cursed and you probably shouldn't use it.
+It relies on the Dark Arts to enable a very non-idoimatic way of writing Go.
+
 I was inspired by @fossker's wonderful talk at Doomconf 2022H2 and his
 [Common Lisp Transducers](https://codeberg.org/fosskers/cl-transducers)
-package and documentation
+package and documentation.
 
 But this is a different approach that aims to build upon Go's existing standard
 library to introduce transducers in a simple way alongside a lot of other
-FP features that I've had written in different places
+FP features that I've wanted across various projects
 
-> **NOTE**: This library will eventually require support for generic type aliases
+The end result is the ability to write Go code that looks like this
+```go
+Transduce(
+	Integers(),
+	Chain4(
+		Curry2(Take[int], 5),
+		Curry2(Map, func(i int) []byte {
+			return []byte(strconv.Itoa(i))
+		}),
+		Visitor(Curry2(Write, io.Writer(&buf))),
+		Curry2(Map, func(b []byte) string {
+			return string(b)
+		}),
+	),
+	Collect,
+)
+```
