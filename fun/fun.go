@@ -2,6 +2,9 @@ package fun
 
 import "github.com/rushsteve1/fp"
 
+// Predicate takes a value and returns a bool
+type Predicate[T any] func(T) bool
+
 // Identity returns what it is passed
 func Identity[T any](t T) T {
 	return t

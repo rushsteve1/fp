@@ -5,18 +5,19 @@ import (
 	"slices"
 
 	. "github.com/rushsteve1/fp"
+	"github.com/rushsteve1/fp/fun"
 	"github.com/rushsteve1/fp/monads"
 )
 
-// Accumulate is a function that applies a value to an accumulator, returning the new accumulator
-type Accumulate[T, A any] func(T, A) A
+// Reduction is a function that applies a value to an accumulator, returning the new accumulator
+type Reduction[T, Acc any] func(T, Acc) Acc
 
 // Reducer is a function that reduces a sequence down to a single value
-type Reducer[T, A any] func(Seq[T], Accumulate[T, A]) A
+type Reducer[T, Acc any] func(Seq[T], Reduction[T, Acc]) Acc
 
 // Collector takes a sequence and returns a single value.
 // [Reducer] can be converted to Collector using [threading.Curry2]
-type Collector[T, A any] func(Seq[T]) A
+type Collector[T, Acc any] func(Seq[T]) Acc
 
 // Collect wraps [slices.Collect]
 func Collect[T any](seq Seq[T]) []T {
@@ -24,7 +25,7 @@ func Collect[T any](seq Seq[T]) []T {
 }
 
 // Reduce consumes a sequence returning a final accumulator value
-func Reduce[T, A any](seq Seq[T], a A, f Accumulate[T, A]) A {
+func Reduce[T, Acc any](seq Seq[T], a Acc, f Reduction[T, Acc]) Acc {
 	for v := range seq.Seq {
 		a = f(v, a)
 	}
@@ -85,6 +86,7 @@ func Min[T cmp.Ordered](seq Seq[T]) (out T) {
 	return out
 }
 
+// Median returns the median value of the sequence
 func Median[T cmp.Ordered](seq Seq[T]) T {
 	var hi T
 	var lo T
@@ -95,6 +97,7 @@ func Median[T cmp.Ordered](seq Seq[T]) T {
 	return lo
 }
 
+// Frequency returns the frequency of each element in the sequence
 func Frequency[T cmp.Ordered](seq Seq[T]) map[T]int {
 	out := make(map[T]int)
 	for v := range seq.Seq {
@@ -103,6 +106,7 @@ func Frequency[T cmp.Ordered](seq Seq[T]) map[T]int {
 	return out
 }
 
+// Average returns the average of a numeric sequence
 func Average[T Numeric](seq Seq[T]) T {
 	count := 0
 	var sum T
@@ -113,7 +117,9 @@ func Average[T Numeric](seq Seq[T]) T {
 	return sum / T(count)
 }
 
-func Any[T any](seq Seq[T], f func(T) bool) bool {
+// Any returns true if any value in the sequence passes the predicate.
+// Short-circuits on the first passing value
+func Any[T any](seq Seq[T], f fun.Predicate[T]) bool {
 	for v := range seq.Seq {
 		if f(v) {
 			return true
@@ -122,7 +128,8 @@ func Any[T any](seq Seq[T], f func(T) bool) bool {
 	return false
 }
 
-func All[T any](seq Seq[T], f func(T) bool) bool {
+// All returns true if all values in the sequence pass the predicate
+func All[T any](seq Seq[T], f fun.Predicate[T]) bool {
 	for v := range seq.Seq {
 		if !f(v) {
 			return false

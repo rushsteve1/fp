@@ -7,6 +7,7 @@ import (
 	"time"
 
 	. "github.com/rushsteve1/fp"
+	"github.com/rushsteve1/fp/fun"
 	"github.com/rushsteve1/fp/generators"
 	"github.com/rushsteve1/fp/monads"
 	"github.com/rushsteve1/fp/reducers"
@@ -17,9 +18,6 @@ import (
 
 // Transform takes a value and returns a new value
 type Transform[T, U any] func(T) U
-
-// Predicate takes a value and returns a bool
-type Predicate[T any] func(T) bool
 
 // Transducer is a generalized mapping of a computation between two Sequences.
 // It is higher-kinded than a normal HO transform.
@@ -47,7 +45,7 @@ func Map[T, U any](seq Seq[T], f Transform[T, U]) Seq[U] {
 }
 
 // Filter has the added constraint [comparable] but only needs one generic
-func Filter[T comparable](seq Seq[T], f Predicate[T]) Seq[T] {
+func Filter[T comparable](seq Seq[T], f fun.Predicate[T]) Seq[T] {
 	return SeqFunc[T](func(yield func(T) bool) {
 		seq.Seq(func(t T) bool {
 			return Ternary(f(t), yield(t), true)
@@ -74,7 +72,7 @@ func Take[T any](seq Seq[T], count int) Seq[T] {
 }
 
 // TakeWhile yields elements while the predicate is true
-func TakeWhile[T any](seq Seq[T], f Predicate[T]) Seq[T] {
+func TakeWhile[T any](seq Seq[T], f fun.Predicate[T]) Seq[T] {
 	return SeqFunc[T](func(yield func(T) bool) {
 		seq.Seq(func(t T) bool {
 			if f(t) {
@@ -96,7 +94,7 @@ func Drop[T any](seq Seq[T], count int) Seq[T] {
 }
 
 // DropWhile removes elements while the predicate is true
-func DropWhile[T any](seq Seq[T], f Predicate[T]) Seq[T] {
+func DropWhile[T any](seq Seq[T], f fun.Predicate[T]) Seq[T] {
 	return SeqFunc[T](func(yield func(T) bool) {
 		dropstop := false
 		seq.Seq(func(t T) bool {
@@ -234,6 +232,7 @@ func Write(seq Seq[[]byte], w io.Writer) Seq[monads.Result[int]] {
 // Dedup removes equal adjacent elements from the stream
 func Dedup[T comparable](seq Seq[T]) Seq[T] {
 	return SeqFunc[T](func(yield func(T) bool) {
+		// TODO this can be implemented better for sure
 		next, stop := Pull(seq)
 		prev, ok := next()
 		if !ok {
@@ -254,6 +253,22 @@ func Dedup[T comparable](seq Seq[T]) Seq[T] {
 				}
 			}
 			prev = v
+			return true
+		})
+	})
+}
+
+// Unique drops all elements that have already occured in the sequence.
+// Due to keeping track of
+func Unique[T comparable](seq Seq[T]) Seq[T] {
+	return SeqFunc[T](func(yield func(T) bool) {
+		// Using this old trick
+		seen := make(map[T]bool)
+		seq.Seq(func(t T) bool {
+			if !seen[t] {
+				seen[t] = true
+				return yield(t)
+			}
 			return true
 		})
 	})
