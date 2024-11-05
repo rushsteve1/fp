@@ -64,3 +64,13 @@ func Pull[V any](seq Seq[V]) (next func() (V, bool), stop func()) {
 func Pull2[K, V any](seq Seq2[K, V]) (next func() (K, V, bool), stop func()) {
 	return iter.Pull2(seq.Seq2)
 }
+
+// Duet is the inverse of [Seq2.Seq] taking a [Seq] of [KeyValue]
+// and returning the [Seq2] equivalent
+func Duet[K, V any](seq Seq[KeyValue[K, V]]) Seq2[K, V] {
+	return Seq2Func[K, V](func(yield func(K, V) bool) {
+		seq.Seq(func(kv KeyValue[K, V]) bool {
+			return yield(kv.Key, kv.Value)
+		})
+	})
+}
