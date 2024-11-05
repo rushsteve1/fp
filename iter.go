@@ -26,12 +26,29 @@ func (sf SeqFunc[V]) Seq(yield func(V) bool) {
 	sf(yield)
 }
 
-// Seq2Func is exactly the same as [iter.Seq2] and can be trivially cast between
+// KeyValue wholes a key-value pair
+type KeyValue[K, V any] struct {
+	Key   K
+	Value V
+}
+
+// Seq2Func is exactly the same as [iter.Seq2] and can be trivially cast between.
 type Seq2Func[K, V any] iter.Seq2[K, V]
 
 // Seq2 is to [Seq] what [iter.Seq] is to [iter.Seq2]
+// but with the addition requirement that Seq2 values can be used as
 type Seq2[K, V any] interface {
+	// I don't like the whole [iter.Seq2] thing that the stdlib does
+	// so we use this to convert [Seq2] into [Seq]
+	// This trivially gives compatibility with the rest of this library
+	Seq(yield func(KeyValue[K, V]) bool)
 	Seq2(yield func(K, V) bool)
+}
+
+func (sf Seq2Func[K, V]) Seq(yield func(KeyValue[K, V]) bool) {
+	sf(func(k K, v V) bool {
+		return yield(KeyValue[K, V]{k, v})
+	})
 }
 
 func (sf Seq2Func[K, V]) Seq2(yield func(K, V) bool) {
