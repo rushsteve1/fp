@@ -5,21 +5,27 @@ import (
 	"reflect"
 )
 
-func Curry2[A, B, Out any](f func(A, B) Out, b B) func(A) Out {
-	return func(a A) Out {
+// The set of currying functions takes a series of functions and returns
+// a new function that takes only the first argument of the first function.
+// 
+// Because of a limitation of Go and the design of this library, all curried
+// functions take only a single argument.
+
+func Curry2[In, B, Out any](f func(In, B) Out, b B) func(In) Out {
+	return func(a In) Out {
 		return f(a, b)
 	}
 }
 
-func Curry3[A, B, C, Out any](f func(A, B, C) Out, b B, c C) func(A) Out {
-	return func(a A) Out {
-		return Curry2(Curry32(f, c), b)(a)
+func Curry3[In, B, C, Out any](f func(In, B, C) Out, b B, c C) func(In) Out {
+	return func(a In) Out {
+		return f(a, b, c)
 	}
 }
 
-func Curry32[A, B, C, Out any](f func(A, B, C) Out, c C) func(A, B) Out {
-	return func(a A, b B) Out {
-		return f(a, b, c)
+func Curry4[In, B, C, D, Out any](f func(In, B, C, D) Out, b B, c C, d D) func(In) Out {
+	return func(a In) Out {
+		return f(a, b, c, d)
 	}
 }
 

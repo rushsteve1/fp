@@ -24,6 +24,13 @@ var GlobalErrorHandler = func(err error) bool {
 	panic(err)
 }
 
+// Must is the first function anyone wants in Go
+func Must[T any](t T, err error) T {
+	Check(err)
+	return t
+}
+
+// Check is the second
 func Check(err error) {
 	if err != nil {
 		if !GlobalErrorHandler(err) {
@@ -32,10 +39,23 @@ func Check(err error) {
 	}
 }
 
-// Must is the first function anyone wants in Go
-func Must[T any](t T, err error) T {
-	Check(err)
-	return t
+// Ptr returns a pointer of its argument
+func Ptr[T any](t T) *T {
+	return &t
+}
+
+// DerefOr dereferences the passed pointer otherwise returns the or value
+func DerefOr[T any](ref *T, or T) T {
+	if ref != nil {
+		return *ref
+	}
+	return or
+}
+
+// DerefZero is like [DerefOr] but returns the zero value if nil
+func DerefZero[T any](ref *T) T {
+	var t T
+	return DerefOr(ref, t)
 }
 
 func Clamp[T cmp.Ordered](x T, lo T, hi T) T {

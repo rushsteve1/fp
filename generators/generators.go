@@ -6,13 +6,14 @@ import (
 	"time"
 
 	. "github.com/rushsteve1/fp"
+	"github.com/rushsteve1/fp/monads"
 )
 
 // A generator is any function that returns a new sequence
 
 // Empty returns an infinite empty sequence that never yields any values
 func Empty[T any]() Seq[T] {
-	return SeqFunc[T](func(func(T) bool){})
+	return SeqFunc[T](func(func(T) bool) {})
 }
 
 // Generate returns an iterator that repeatedly calls the provided function,
@@ -25,9 +26,16 @@ func Generate[T any](f func() T) Seq[T] {
 	})
 }
 
+// Once returns a sequence that yields the provided value once
+func Once[T any](v T) Seq[T] {
+	return SeqFunc[T](func(yield func(T) bool) {
+		yield(v)
+	})
+}
+
 // Forever returns an infinite sequence of the provided value
 func Forever[T any](v T) Seq[T] {
-	return SeqFunc[T](func(yield func(T) bool){
+	return SeqFunc[T](func(yield func(T) bool) {
 		if !yield(v) {
 			return
 		}
@@ -71,11 +79,11 @@ func Chan[T any](c chan T) Seq[T] {
 
 // Reader reads from the passed [io.Reader] turning into a sequence of byte arrays.
 // See its counterpart [transducers.Writer]
-func Reader(r io.Reader) Seq[[]byte] {
-	return SeqFunc[[]byte](func(yield func([]byte) bool) {
+func Reader(r io.Reader) Seq[monads.Result[[]byte]] {
+	return SeqFunc[monads.Result[[]byte]](func(yield func(monads.Result[[]byte]) bool) {
 		var buf []byte
-		Must(r.Read(buf))
-		if !yield(buf) {
+		_, err := r.Read(buf)
+		if !yield(monads.Wrap(buf, err)) {
 			return
 		}
 	})

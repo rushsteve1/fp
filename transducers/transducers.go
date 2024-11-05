@@ -7,6 +7,8 @@ import (
 	"time"
 
 	. "github.com/rushsteve1/fp"
+	"github.com/rushsteve1/fp/generators"
+	"github.com/rushsteve1/fp/monads"
 	"github.com/rushsteve1/fp/reducers"
 )
 
@@ -28,7 +30,10 @@ type Transducer[T, U any] func(Seq[T]) Seq[U]
 // Transduce is the main event, the rest of this library exists to support it.
 // It allows you to chain complex calculations into a single sequence
 // and then reduce that to a single value.
-func Transduce[T, U, V any](tx Transducer[T, U], rx reducers.Collector[U, V], src Seq[T]) V {
+func Transduce[T, U, V any](src Seq[T], tx Transducer[T, U], rx reducers.Collector[U, V]) V {
+	// Surprise! That's it!
+	// It's a really simple funciton really, but it's the semantic logic
+	// of the operation that really matters
 	return rx(tx(src))
 }
 
@@ -123,6 +128,16 @@ func Append[T any](seq Seq[T], next Seq[T]) Seq[T] {
 	})
 }
 
+// PushBack lazily adds a value to the of a sequence
+func PushBack[T any](seq Seq[T], v T) Seq[T] {
+	return Append(seq, generators.Once(v))
+}
+
+// Push adds a value to the front of a sequence
+func PushFront[T any](seq Seq[T], v T) Seq[T] {
+	return Append(generators.Once(v), seq)
+}
+
 // Fuse stops the sequence at the first nil value
 func Fuse[T Nilable](seq Seq[T], count int) Seq[T] {
 	return SeqFunc[T](func(yield func(T) bool) {
@@ -210,9 +225,36 @@ func Step[T any](seq Seq[T], step int) Seq[T] {
 
 // Write will write to the given writer for every element.
 // See it counterpart [generators.Reader]
-func Write(seq Seq[[]byte], w io.Writer) Seq[error] {
-	return Map(seq, func(b []byte) error {
-		_, err := w.Write(b)
-		return err
+func Write(seq Seq[[]byte], w io.Writer) Seq[monads.Result[int]] {
+	return Map(seq, func(b []byte) monads.Result[int] {
+		return monads.Wrap(w.Write(b))
+	})
+}
+
+// Dedup removes equal adjacent elements from the stream
+func Dedup[T comparable](seq Seq[T]) Seq[T] {
+	return SeqFunc[T](func(yield func(T) bool) {
+		next, stop := Pull(seq)
+		prev, ok := next()
+		if !ok {
+			stop()
+			return
+		}
+
+		seq.Seq(func(t T) bool {
+			v, ok := next()
+			if !ok {
+				stop()
+				return false
+			}
+			if v != prev {
+				if !yield(v) {
+					stop()
+					return false
+				}
+			}
+			prev = v
+			return true
+		})
 	})
 }

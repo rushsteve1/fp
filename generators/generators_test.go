@@ -3,7 +3,8 @@ package generators_test
 import (
 	"testing"
 	"time"
-	
+
+	"github.com/rushsteve1/fp"
 	. "github.com/rushsteve1/fp/generators"
 )
 
@@ -33,8 +34,6 @@ func TestChan(t *testing.T) {
 		t.Log(v)
 		i++
 	}
-
-	if i != 5 {
-		t.Fail()
-	}
+	
+	fp.AssertEq(t, i, 5)
 }

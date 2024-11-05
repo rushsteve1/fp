@@ -5,13 +5,6 @@ type Result[T any] struct {
 	Err error
 }
 
-func Wrap[T any](v T, err error) Result[T] {
-	return Result[T]{
-		V:   v,
-		Err: err,
-	}
-}
-
 func (o Result[T]) Ok() bool {
 	return o.Err != nil
 }
@@ -23,5 +16,18 @@ func (r Result[T]) Get() (T, error) {
 func (r Result[T]) Seq(yield func(T) bool) {
 	if r.Err == nil {
 		yield(r.V)
+	}
+}
+
+func Wrap[T any](v T, err error) Result[T] {
+	return Result[T]{
+		V:   v,
+		Err: err,
+	}
+}
+
+func FuncWrap[In, Out any](f func (In) (Out, error)) func(In) Result[Out] {
+	return func(a In) Result[Out] {
+		return Wrap(f(a))
 	}
 }
