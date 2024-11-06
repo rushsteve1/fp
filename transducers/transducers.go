@@ -21,8 +21,13 @@ type Transform[T, U any] func(T) U
 
 // Transducer is a generalized mapping of a computation between two Sequences.
 // It is higher-kinded than a normal HO transform.
+//
 // Rust's iter and Elixir's Stream are transducers, but Elixir's Enum is not.
+//
 // The easiest way to create a transducer is using [threading.Curry2].
+// A different design of this library could have skipped this by using factory
+// functions that produced transducers. But I wanted to keep compatibility
+// and allow these functions to be used with normal composition.
 type Transducer[T, U any] func(Seq[T]) Seq[U]
 
 // Transduce is the main event, the rest of this library exists to support it.
@@ -35,7 +40,7 @@ func Transduce[T, U, V any](src Seq[T], tx Transducer[T, U], rx reducers.Collect
 	return rx(tx(src))
 }
 
-// Map is the simplest, but shows how it all actually works
+// Map is the simplest transducer, but shows how it all actually works
 func Map[T, U any](seq Seq[T], f Transform[T, U]) Seq[U] {
 	return SeqFunc[U](func(yield func(U) bool) {
 		seq.Seq(func(t T) bool {

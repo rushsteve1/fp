@@ -9,6 +9,8 @@ import (
 
 var ErrUnwrapInvalid = errors.New("Unwrapped invalid Option")
 
+// Option is a monad that wraps a value that may or may not exist.
+// It is the same as in Rust.
 type Option[T any] struct {
 	// I have no idea why I bothered implementing it this way
 	// but while we're re-interpeting the stdlib might as well
@@ -29,10 +31,12 @@ func (o Option[T]) Seq(yield func(T) bool) {
 	}
 }
 
+// Ptr is a helper function for converting an [Option]
 func (o Option[T]) Ptr() *T {
 	return fp.Ternary(o.Valid, &o.V, nil)
 }
 
+// Some returns a valid [Option]
 func Some[T any](v T) Option[T] {
 	return Option[T]{
 		sql.Null[T]{
@@ -42,6 +46,9 @@ func Some[T any](v T) Option[T] {
 	}
 }
 
+// TrySome is like [Some] but takes in a pointer,
+// so can be used with many existing functions.
+// It is the logical inverse of [Ptr]
 func TrySome[T any](v *T) Option[T] {
 	if v == nil {
 		return Option[T]{

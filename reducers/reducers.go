@@ -19,6 +19,13 @@ type Reducer[T, Acc any] func(Seq[T], Reduction[T, Acc]) Acc
 // [Reducer] can be converted to Collector using [threading.Curry2]
 type Collector[T, Acc any] func(Seq[T]) Acc
 
+// Consume is the simplest possible reducer
+// It pulls every element in the sequence then discards them
+func Consume[T any](seq Seq[T]) {
+	for range seq.Seq {
+	}
+}
+
 // Collect wraps [slices.Collect]
 func Collect[T any](seq Seq[T]) []T {
 	return slices.Collect[T](seq.Seq)

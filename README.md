@@ -17,14 +17,15 @@ Transduce(
 	Integers(),
 	Chain4(
 		Curry2(Take[int], 5),
+		Delta,
 		Curry2(Map, func(i int) []byte {
 			return []byte(strconv.Itoa(i))
 		}),
 		Visitor(Curry2(Write, io.Writer(&buf))),
-		Curry2(Map, func(b []byte) string {
-			return string(b)
-		}),
 	),
 	Collect,
 )
 ```
+
+None of the ideas in this library are new.
+I'm mostly copying features from the wonderful [Clojure](https://clojure.org).

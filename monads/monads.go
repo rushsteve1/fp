@@ -3,7 +3,8 @@ package monads
 import "github.com/rushsteve1/fp"
 
 // Monad is a context that an operation took place in.
-// You can apply additional operations within the monad using transducers
+// They can be thought of as single-value sequences.
+// You can apply additional operations within the monad using transducers.
 type Monad[T any] interface {
 	// All monads are sequences and can be manipulated using transducers
 	fp.Seq[T]

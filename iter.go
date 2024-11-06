@@ -19,6 +19,7 @@ type Seq[V any] interface {
 	// Seq implements push-style iteration using the yield callback.
 	// See the documenation of [iter] for more information.
 	// It has exactly the same signature as [SeqFunc].
+	// This function can be used directly with the for-range statement
 	Seq(yield func(V) bool)
 }
 
@@ -26,7 +27,7 @@ func (sf SeqFunc[V]) Seq(yield func(V) bool) {
 	sf(yield)
 }
 
-// KeyValue wholes a key-value pair
+// KeyValue is a key-value pair
 type KeyValue[K, V any] struct {
 	Key   K
 	Value V
@@ -36,7 +37,7 @@ type KeyValue[K, V any] struct {
 type Seq2Func[K, V any] iter.Seq2[K, V]
 
 // Seq2 is to [Seq] what [iter.Seq] is to [iter.Seq2]
-// but with the addition requirement that Seq2 values can be used as
+// but with the additional requirement that Seq2 implements [Seq]
 type Seq2[K, V any] interface {
 	// I don't like the whole [iter.Seq2] thing that the stdlib does
 	// so we use this to convert [Seq2] into [Seq]
