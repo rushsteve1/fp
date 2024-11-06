@@ -50,7 +50,7 @@ func Some[T any](v T) Option[T] {
 // so can be used with many existing functions.
 // It is the logical inverse of [Ptr]
 func TrySome[T any](v *T) Option[T] {
-	if v == nil {
+	if v != nil {
 		return Option[T]{
 			sql.Null[T]{
 				V:     *v,

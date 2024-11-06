@@ -15,6 +15,7 @@ const OB_BUF_SIZE = 5
 // It is a [monads.Monad], and therefore also a [fp.Seq].
 // Because sequences are lazy an Observable with no subscribers does nothing.
 type Observable[T comparable] struct {
+	// This is an internally mutable Monad so make sure it is thread-safe
 	mu  *sync.Mutex
 	err error
 	v   T
@@ -44,7 +45,7 @@ func Observe[T comparable](v T) Observable[T] {
 		yield(o.v)
 		for t := range o.c {
 			o.mu.Lock()
-			o.v = t
+			o.v = t // I'm not super happy about this, but it should be fine?
 			if !yield(t) {
 				return
 			}
@@ -74,7 +75,7 @@ func (o Observable[T]) Seq(yield func(T) bool) {
 //
 // WARNING: The internal channel that this function uses has a buffer set by
 // [OB_BUF_SIZE] which defaults to 5.
-// More than 5 calls to Set without any subscribers can overflow this buffer.
+// Calls to Set without any subscribers can overflow this buffer.
 func (o Observable[T]) Set(v T) {
 	// Only update when the
 	if v != o.v {
@@ -82,7 +83,8 @@ func (o Observable[T]) Set(v T) {
 	}
 }
 
-// Subscription is a handle that can be used to stop after calling [Subscribe]
+// Subscription is a handle that can be used to stop after calling [Subscribe].
+// This type simply implements [io.Closer]
 type Subscription struct {
 	stop chan bool
 }
@@ -92,7 +94,9 @@ func (s Subscription) Close() {
 }
 
 // Subscribe starts a new goroutine that will continually listen for changes
-// to the sequence of this [Observable], calling f for each new value
+// to the sequence of this [Observable], calling f for each new value.
+//
+// It returns a [Subscription] handle that can be used to close it
 func (o Observable[T]) Subscribe(f func(T)) {
 	sub := Subscription{
 		stop: make(chan bool),
