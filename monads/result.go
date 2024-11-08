@@ -11,6 +11,7 @@ func (o Result[T]) Ok() bool {
 	return o.Err != nil
 }
 
+// Get implements [Gettable]
 func (r Result[T]) Get() (T, error) {
 	return r.V, r.Err
 }

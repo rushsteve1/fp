@@ -28,4 +28,5 @@ Transduce(
 ```
 
 None of the ideas in this library are new.
-I'm mostly copying features from the wonderful [Clojure](https://clojure.org).
+I'm mostly copying features from the wonderful [Clojure](https://clojure.org)
+and of course [Rust](https://rust-lang.org).

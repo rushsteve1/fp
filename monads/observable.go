@@ -1,12 +1,11 @@
 package monads
 
 import (
-	"sync"
-
 	. "github.com/rushsteve1/fp"
 )
 
-const OB_BUF_SIZE = 5
+// ObserableBufSize is the size of the channel buffer used by [Observable]
+var ObserableBufSize = 5
 
 // Observable is similar to promises in other languages, but can be considered
 // and async version of [Result] within this library. It is thread-safe.
@@ -15,10 +14,8 @@ const OB_BUF_SIZE = 5
 // It is a [monads.Monad], and therefore also a [fp.Seq].
 // Because sequences are lazy an Observable with no subscribers does nothing.
 type Observable[T comparable] struct {
-	// This is an internally mutable Monad so make sure it is thread-safe
-	mu  *sync.Mutex
+	RWLock[T]
 	err error
-	v   T
 	c   chan T
 	seq Seq[T]
 }
@@ -35,21 +32,19 @@ func Promise[T comparable](f func() T) Observable[T] {
 // Observe creates an [Observable] from a single value
 func Observe[T comparable](v T) Observable[T] {
 	o := Observable[T]{
-		mu:  &sync.Mutex{},
-		err: nil,
-		v:   v,
-		c:   make(chan T, OB_BUF_SIZE),
+		RWLock: NewRWLock(v),
+		err:    nil,
+		c:      make(chan T, ObserableBufSize),
 	}
 
 	o.seq = SeqFunc[T](func(yield func(T) bool) {
-		yield(o.v)
+		v, _ := o.Get()
+		yield(v)
 		for t := range o.c {
-			o.mu.Lock()
-			o.v = t // I'm not super happy about this, but it should be fine?
+			o.Set(v)
 			if !yield(t) {
 				return
 			}
-			o.mu.Unlock()
 		}
 	})
 
@@ -60,12 +55,6 @@ func (o Observable[T]) Ok() bool {
 	return o.err == nil
 }
 
-func (o Observable[T]) Get() (T, error) {
-	o.mu.Lock()
-	defer o.mu.Unlock()
-	return o.v, o.err
-}
-
 func (o Observable[T]) Seq(yield func(T) bool) {
 	o.seq.Seq(yield)
 }
@@ -74,11 +63,12 @@ func (o Observable[T]) Seq(yield func(T) bool) {
 // be yielded on the sequence.
 //
 // WARNING: The internal channel that this function uses has a buffer set by
-// [OB_BUF_SIZE] which defaults to 5.
+// [ObserableBufSize] which defaults to 5.
 // Calls to Set without any subscribers can overflow this buffer.
 func (o Observable[T]) Set(v T) {
 	// Only update when the
-	if v != o.v {
+	cur, _ := o.Get()
+	if v != cur {
 		o.c <- v
 	}
 }

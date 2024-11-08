@@ -21,6 +21,7 @@ func (o Option[T]) Ok() bool {
 	return o.Valid
 }
 
+// Get implements [Gettable]
 func (o Option[T]) Get() (T, error) {
 	return o.V, fp.Ternary(o.Valid, nil, ErrUnwrapInvalid)
 }
