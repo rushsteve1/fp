@@ -9,6 +9,11 @@ import (
 
 var ErrUnwrapInvalid = errors.New("Unwrapped invalid Option")
 
+// > Hey wait, can't you use the interfaces trick to do ADTs like in this?
+// > https://www.jerf.org/iri/post/2917/
+// 
+// I could, but it's a total hack around one of Go's biggest missing features
+
 // Option is a monad that wraps a value that may or may not exist.
 // It is the same as in Rust.
 type Option[T any] struct {

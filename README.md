@@ -9,7 +9,9 @@ package and documentation.
 
 But this is a different approach that aims to build upon Go's existing standard
 library to introduce transducers in a simple way alongside a lot of other
-FP features that I've wanted across various projects
+FP features that I've wanted across various projects.
+
+There are many FP/utility libraries for Go. This one is mine.
 
 The end result is the ability to write Go code that looks like this
 ```go
@@ -30,3 +32,7 @@ Transduce(
 None of the ideas in this library are new.
 I'm mostly copying features from the wonderful [Clojure](https://clojure.org)
 and of course [Rust](https://rust-lang.org).
+
+There are also some other kinda misc things in this library.
+As its grown it's become more of a general purpose utility library
+that I use. You can easily import just the parts you want.
