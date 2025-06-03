@@ -30,7 +30,7 @@ func NewRetainedSeq[T any](seq Seq[T]) (out RetainedSeq[T]) {
 }
 
 func (rs RetainedSeq[T]) Back() (out RetainedSeq[T]) {
-	rs.rollback(1)
+	return rs.rollback(1)
 }
 
 func (rs RetainedSeq[T]) Reset() (out RetainedSeq[T]) {

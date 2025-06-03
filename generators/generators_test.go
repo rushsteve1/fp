@@ -34,6 +34,6 @@ func TestChan(t *testing.T) {
 		t.Log(v)
 		i++
 	}
-	
+
 	fp.AssertEq(t, i, 5)
 }

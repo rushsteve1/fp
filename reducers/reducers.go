@@ -10,14 +10,14 @@ import (
 )
 
 // Reduction is a function that applies a value to an accumulator, returning the new accumulator
-type Reduction[T, Acc any] func(T, Acc) Acc
+type Reduction[T, Acc any] = func(T, Acc) Acc
 
 // Reducer is a function that reduces a sequence down to a single value
-type Reducer[T, Acc any] func(Seq[T], Reduction[T, Acc]) Acc
+type Reducer[T, Acc any] = func(Seq[T], Reduction[T, Acc]) Acc
 
 // Collector takes a sequence and returns a single value.
 // [Reducer] can be converted to Collector using [threading.Curry2]
-type Collector[T, Acc any] func(Seq[T]) Acc
+type Collector[T, Acc any] = func(Seq[T]) Acc
 
 // Consume is the simplest possible reducer
 // It pulls every element in the sequence then discards them
@@ -29,6 +29,24 @@ func Consume[T any](seq Seq[T]) {
 // Collect wraps [slices.Collect]
 func Collect[T any](seq Seq[T]) []T {
 	return slices.Collect[T](seq.Seq)
+}
+
+// Collect2 is the [fp.Seq2] version of [Collect]
+func Collect2[K comparable, V any](seq Seq2[K, V]) map[K]V {
+	out := make(map[K]V)
+	for k, v := range seq.Seq2 {
+		out[k] = v
+	}
+	return out
+}
+
+// Same as [Collect2]
+func CollectKV[K comparable, V any](seq Seq[KeyValue[K, V]]) map[K]V {
+	out := make(map[K]V)
+	for kv := range seq.Seq {
+		out[kv.Key] = kv.Value
+	}
+	return out
 }
 
 // Reduce consumes a sequence returning a final accumulator value

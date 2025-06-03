@@ -14,10 +14,9 @@ import (
 )
 
 // Most of these type definitions are for illustrative purposes and are unnecessary
-// Also because generic type alaises isn't in yet we can't actually use them much
 
 // Transform takes a value and returns a new value
-type Transform[T, U any] func(T) U
+type Transform[T, U any] = func(T) U
 
 // Transducer is a generalized mapping of a computation between two Sequences.
 // It is higher-kinded than a normal HO transform.
@@ -28,7 +27,7 @@ type Transform[T, U any] func(T) U
 // A different design of this library could have skipped this by using factory
 // functions that produced transducers. But I wanted to keep compatibility
 // and allow these functions to be used with normal composition.
-type Transducer[T, U any] func(Seq[T]) Seq[U]
+type Transducer[T, U any] = func(Seq[T]) Seq[U]
 
 // Transduce is the main event, the rest of this library exists to support it.
 // It allows you to chain complex calculations into a single sequence

@@ -5,6 +5,11 @@ import (
 	"reflect"
 )
 
+// Chain implementents function chaining or threading, where each function is
+// passed the return value of the previous.
+// This is particularly useful in Transducers that all operate over [fp.Seq]
+
+// Reflective version
 func Chain[In, Out any](fs ...any) func(In) Out {
 	vfs := make([]reflect.Value, 0, len(fs))
 	for i, f := range fs {
@@ -53,6 +58,7 @@ func Chain[In, Out any](fs ...any) func(In) Out {
 	return cast
 }
 
+// Generics up to 4, could extend with go:generate
 func Chain2[In, B, Out any](a func(In) B, b func(B) Out) func(In) Out {
 	return func(x In) Out {
 		return b(a(x))

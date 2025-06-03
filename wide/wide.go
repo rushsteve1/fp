@@ -42,15 +42,19 @@ func SetMainEvent(ctx context.Context, evt Event) context.Context {
 	return context.WithValue(ctx, MAIN_WIDE_EVENT_KEY, evt)
 }
 
+func GetMainEvent(ctx context.Context) Event {
+	return context.GetValue(ctx, MAIN_WIDE_EVENT_KEY)
+}
+
 type Event struct {
-	ctx    context.Context
-	vars   *expvar.Map
+	ctx  context.Context
+	vars *expvar.Map
 }
 
 func NewEvent(ctx context.Context, name string) Event {
 	return Event{
-		ctx:    ctx,
-		vars:   expvar.NewMap(name),
+		ctx:  ctx,
+		vars: expvar.NewMap(name),
 	}
 }
 
@@ -83,7 +87,3 @@ func EventGroup(ctx context.Context, name string, fs ...func(context.Context) er
 func (e Event) Close() error {
 	return exporter(e.ctx, e.vars)
 }
-
-type Span
-
-func (e Event) NewSpan()

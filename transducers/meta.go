@@ -11,7 +11,7 @@ import (
 // counteracts the first and returns the original sequence unaltered.
 // Useful for transducers with side-effcts like [Write].
 // This is a higher-kinded version of [Each].
-// 
+//
 // This took me a very long time to figure out
 func Visitor[T, U any](tx Transducer[T, U]) Transducer[T, T] {
 	// Create tne new transducer that takes the sequence
@@ -21,7 +21,7 @@ func Visitor[T, U any](tx Transducer[T, U]) Transducer[T, T] {
 			// Create another new sequence and pass that to tx
 			tx(SeqFunc[T](func(y2 func(T) bool) {
 				// Call the passed in sequence
-				seq.Seq(func (t T) bool {
+				seq.Seq(func(t T) bool {
 					// Yield to both new sequences
 					return y1(t) && y2(t)
 				})

@@ -7,7 +7,7 @@ import (
 
 // The set of currying functions takes a series of functions and returns
 // a new function that takes only the first argument of the first function.
-// 
+//
 // Because of a limitation of Go and the design of this library, all curried
 // functions take only a single argument.
 
